@@ -12,6 +12,7 @@ import com.avvero.rss_collector.service.RssLoader;
 import com.avvero.rss_collector.service.RssEventProducer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -41,6 +42,8 @@ public class App {
     RssCache rssCache;
     @Autowired
     RssEventProducer rssEventProducer;
+    @Value("#{'${rss_collector.urls}'.split(',')}")
+    private List<String> urls;
 
     @Bean
     ApplicationStart getApplicationStartEvent() {
@@ -54,9 +57,8 @@ public class App {
     @Scheduled(fixedDelayString="${rss_collector.collect_delay}")
     private void collectRss(){
         LocalDateTime startDate = getApplicationStartEvent().getDateTime();
-        List<String> rssUrls = Arrays.asList("http://igromania.ru/rss/rss_all.xml");
 
-        rssUrls.stream()
+        urls.stream()
                 .peek(url -> log.info("Load rss from {}", url))
                 .map(rssLoader::load)
                 .flatMap(this::parse)
