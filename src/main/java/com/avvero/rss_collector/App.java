@@ -51,7 +51,7 @@ public class App {
         SpringApplication.run(App.class, args);
     }
 
-    @Scheduled(fixedDelay=5000)
+    @Scheduled(fixedDelayString="${rss_collector.collect_delay}")
     private void collectRss(){
         LocalDateTime startDate = getApplicationStartEvent().getDateTime();
         List<String> rssUrls = Arrays.asList("http://igromania.ru/rss/rss_all.xml");
@@ -61,7 +61,8 @@ public class App {
                 .map(rssLoader::load)
                 .flatMap(this::parse)
                 .filter(item -> item.getItem().getPubDate().isAfter(startDate))
-                .filter(rssCache::store).forEach(rssEventProducer::publish);
+                .filter(rssCache::store)
+                .forEach(rssEventProducer::publish);
     }
 
     private Stream<Event> parse(Rss rss) {
