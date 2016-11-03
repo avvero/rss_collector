@@ -1,10 +1,16 @@
 package com.avvero.rss_collector;
 
-import com.avvero.rss_collector.domain.Rss;
+import com.avvero.rss_collector.domain.Event;
+import com.avvero.rss_collector.domain.EventChannel;
+import com.avvero.rss_collector.domain.EventItem;
+import com.avvero.rss_collector.entity.Channel;
+import com.avvero.rss_collector.entity.Item;
+import com.avvero.rss_collector.entity.Rss;
 import com.avvero.rss_collector.event.ApplicationStart;
 import com.avvero.rss_collector.service.RssCache;
-import com.avvero.rss_collector.service.RssConsumer;
+import com.avvero.rss_collector.service.RssLoader;
 import com.avvero.rss_collector.service.RssEventProducer;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -15,10 +21,14 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Created by fxdev-belyaev-ay on 03.11.16.
  */
+@Slf4j
 @ComponentScan
 @EnableAsync
 @EnableScheduling
@@ -26,7 +36,7 @@ import java.time.LocalDateTime;
 public class App {
 
     @Autowired
-    RssConsumer rssConsumer;
+    RssLoader rssLoader;
     @Autowired
     RssCache rssCache;
     @Autowired
@@ -43,11 +53,28 @@ public class App {
 
     @Scheduled(fixedDelay=5000)
     private void collectRss(){
-        Rss rss = rssConsumer.get("http://igromania.ru/rss/rss_all.xml");
         LocalDateTime startDate = getApplicationStartEvent().getDateTime();
-        rss.getChannel().getItems().stream()
-                .filter(item -> item.getPubDate().isAfter(startDate))
-                .filter(rssCache::store).forEach(rssEventProducer::publicate);
+        List<String> rssUrls = Arrays.asList("http://igromania.ru/rss/rss_all.xml");
+
+        rssUrls.stream()
+                .peek(url -> log.info("Load rss from {}", url))
+                .map(rssLoader::load)
+                .flatMap(this::parse)
+                .filter(item -> item.getItem().getPubDate().isAfter(startDate))
+                .filter(rssCache::store).forEach(rssEventProducer::publish);
+    }
+
+    private Stream<Event> parse(Rss rss) {
+        return rss.getChannel().getItems().stream().map(item -> parse(rss, item));
+    }
+
+    private Event parse(Rss rss, Item item){
+        Channel channel = rss.getChannel();
+        return new Event(
+                rss.getSourceUrl(),
+                new EventChannel(channel.getTitle(), channel.getLink(), channel.getDescription()),
+                new EventItem(item.getTitle(), item.getLink(), item.getDescription(), item.getPubDate())
+        );
     }
 
 }

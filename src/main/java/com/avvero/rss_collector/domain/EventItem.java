@@ -1,8 +1,5 @@
 package com.avvero.rss_collector.domain;
 
-import com.avvero.rss_collector.utils.LocalDateTimeStringDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import javafx.util.converter.LocalDateTimeStringConverter;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,17 +7,16 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * Created by fxdev-belyaev-ay on 03.11.16.
+ * @author Avvero
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Item {
+public class EventItem {
 
     private String title;
     private String link;
     private String description;
-    @JsonDeserialize(using = LocalDateTimeStringDeserialize.class)
     private LocalDateTime pubDate;
 
 }

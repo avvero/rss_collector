@@ -1,4 +1,4 @@
-package com.avvero.rss_collector.domain;
+package com.avvero.rss_collector.entity;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;

@@ -1,4 +1,4 @@
-package com.avvero.rss_collector.domain;
+package com.avvero.rss_collector.entity;
 
 import lombok.Data;
 
@@ -8,6 +8,7 @@ import lombok.Data;
 @Data
 public class Rss {
 
+    private String sourceUrl;
     private Channel channel;
 
 }
