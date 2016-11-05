@@ -1,16 +1,11 @@
 package com.avvero.rss_collector;
 
-import com.avvero.rss_collector.domain.Event;
-import com.avvero.rss_collector.domain.EventChannel;
-import com.avvero.rss_collector.domain.EventItem;
-import com.avvero.rss_collector.entity.Channel;
-import com.avvero.rss_collector.entity.Item;
-import com.avvero.rss_collector.entity.Rss;
 import com.avvero.rss_collector.event.ApplicationStart;
-import com.avvero.rss_collector.service.RssCache;
-import com.avvero.rss_collector.service.RssLoader;
-import com.avvero.rss_collector.service.RssEventProducer;
-import lombok.extern.slf4j.Slf4j;
+import com.avvero.rss_collector.service.RssCollector;
+import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.activemq.camel.component.ActiveMQComponent;
+import org.apache.camel.component.jackson.JacksonDataFormat;
+import org.apache.camel.component.jms.JmsConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
@@ -22,28 +17,25 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Stream;
 
 /**
  * Created by fxdev-belyaev-ay on 03.11.16.
  */
-@Slf4j
 @ComponentScan
 @EnableAsync
 @EnableScheduling
 @EnableAutoConfiguration
 public class App {
 
+    @Value("${rss_collector.jms_broker_url}")
+    public String jmsBrokerUrl;
+    @Value("${rss_collector.jms_broker_user_name}")
+    public String jmsBrokerUserName;
+    @Value("${rss_collector.jms_broker_password}")
+    public String jmsBrokerPassword;
+
     @Autowired
-    RssLoader rssLoader;
-    @Autowired
-    RssCache rssCache;
-    @Autowired
-    RssEventProducer rssEventProducer;
-    @Value("#{'${rss_collector.urls}'.split(',')}")
-    private List<String> urls;
+    RssCollector collector;
 
     @Bean
     ApplicationStart getApplicationStartEvent() {
@@ -56,28 +48,30 @@ public class App {
 
     @Scheduled(fixedDelayString="${rss_collector.collect_delay}")
     private void collectRss(){
-        LocalDateTime startDate = getApplicationStartEvent().getDateTime();
-
-        urls.stream()
-                .peek(url -> log.info("Load rss from {}", url))
-                .map(rssLoader::load)
-                .flatMap(this::parse)
-                .filter(item -> item.getItem().getPubDate().isAfter(startDate))
-                .filter(rssCache::store)
-                .forEach(rssEventProducer::publish);
+        collector.collect();
     }
 
-    private Stream<Event> parse(Rss rss) {
-        return rss.getChannel().getItems().stream().map(item -> parse(rss, item));
+    @Bean
+    public ActiveMQConnectionFactory pooledConnectionFactory() {
+        return new ActiveMQConnectionFactory(jmsBrokerUserName, jmsBrokerPassword, jmsBrokerUrl);
     }
 
-    private Event parse(Rss rss, Item item){
-        Channel channel = rss.getChannel();
-        return new Event(
-                rss.getSourceUrl(),
-                new EventChannel(channel.getTitle(), channel.getLink(), channel.getDescription()),
-                new EventItem(item.getTitle(), item.getLink(), item.getDescription(), item.getPubDate())
-        );
+    @Bean
+    public JmsConfiguration jmsConfig() {
+        JmsConfiguration configuration = new JmsConfiguration(pooledConnectionFactory());
+        configuration.setConcurrentConsumers(10);
+        return configuration;
     }
 
+    @Bean
+    public ActiveMQComponent activemq() {
+        ActiveMQComponent activeMQComponent = new ActiveMQComponent();
+        activeMQComponent.setConfiguration(jmsConfig());
+        return activeMQComponent;
+    }
+
+    @Bean
+    public JacksonDataFormat jacksonDataFormat() {
+        return new JacksonDataFormat();
+    }
 }
