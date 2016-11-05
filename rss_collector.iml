@@ -125,5 +125,6 @@
     <orderEntry type="library" name="Gradle: org.apache.activemq:activemq-broker:5.12.2" level="project" />
     <orderEntry type="library" name="Gradle: org.apache.activemq:activemq-openwire-legacy:5.12.2" level="project" />
     <orderEntry type="library" name="Gradle: org.apache.camel:camel-jackson:2.16.1" level="project" />
+    <orderEntry type="library" name="Gradle: com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.4.0" level="project" />
   </component>
 </module>

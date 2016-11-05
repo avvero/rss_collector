@@ -2,6 +2,7 @@ package com.avvero.rss_collector;
 
 import com.avvero.rss_collector.event.ApplicationStart;
 import com.avvero.rss_collector.service.RssCollector;
+import com.fasterxml.jackson.datatype.jsr310.JSR310Module;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.camel.component.ActiveMQComponent;
 import org.apache.camel.component.jackson.JacksonDataFormat;
@@ -72,6 +73,8 @@ public class App {
 
     @Bean
     public JacksonDataFormat jacksonDataFormat() {
-        return new JacksonDataFormat();
+        JacksonDataFormat jacksonDataFormat =  new JacksonDataFormat();
+        jacksonDataFormat.addModule(new JSR310Module());
+        return jacksonDataFormat;
     }
 }
