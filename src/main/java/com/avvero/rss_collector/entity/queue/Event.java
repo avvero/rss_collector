@@ -1,4 +1,4 @@
-package com.avvero.rss_collector.domain;
+package com.avvero.rss_collector.entity.queue;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,10 +10,10 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class EventChannel {
+public class Event {
 
-    private String title;
-    private String link;
-    private String description;
+    private String sourceUrl;
+    private EventChannel channel;
+    private EventItem item;
 
 }

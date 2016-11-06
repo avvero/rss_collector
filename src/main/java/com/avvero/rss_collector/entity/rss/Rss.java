@@ -1,4 +1,4 @@
-package com.avvero.rss_collector.entity;
+package com.avvero.rss_collector.entity.rss;
 
 import lombok.Data;
 

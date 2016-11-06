@@ -1,4 +1,4 @@
-package com.avvero.rss_collector.entity;
+package com.avvero.rss_collector.entity.rss;
 
 import com.avvero.rss_collector.utils.LocalDateTimeStringDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;

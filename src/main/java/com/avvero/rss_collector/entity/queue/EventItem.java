@@ -1,4 +1,4 @@
-package com.avvero.rss_collector.domain;
+package com.avvero.rss_collector.entity.queue;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;

@@ -1,6 +1,6 @@
 package com.avvero.rss_collector.service;
 
-import com.avvero.rss_collector.entity.Rss;
+import com.avvero.rss_collector.entity.rss.Rss;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.http.converter.xml.MappingJackson2XmlHttpMessageConverter;

@@ -1,7 +1,6 @@
 package com.avvero.rss_collector.service;
 
-import com.avvero.rss_collector.domain.Event;
-import com.avvero.rss_collector.entity.Item;
+import com.avvero.rss_collector.entity.queue.Event;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;

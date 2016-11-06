@@ -1,11 +1,13 @@
 package com.avvero.rss_collector.service;
 
-import com.avvero.rss_collector.domain.Event;
-import com.avvero.rss_collector.domain.EventChannel;
-import com.avvero.rss_collector.domain.EventItem;
-import com.avvero.rss_collector.entity.Channel;
-import com.avvero.rss_collector.entity.Item;
-import com.avvero.rss_collector.entity.Rss;
+import com.avvero.rss_collector.dao.RssResourceRepository;
+import com.avvero.rss_collector.domain.RssResource;
+import com.avvero.rss_collector.entity.queue.Event;
+import com.avvero.rss_collector.entity.queue.EventChannel;
+import com.avvero.rss_collector.entity.queue.EventItem;
+import com.avvero.rss_collector.entity.rss.Channel;
+import com.avvero.rss_collector.entity.rss.Item;
+import com.avvero.rss_collector.entity.rss.Rss;
 import com.avvero.rss_collector.event.ApplicationStart;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.ProducerTemplate;
@@ -14,7 +16,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.stream.Stream;
 
 /**
@@ -32,9 +33,8 @@ public class RssCollector {
     RssEventProducer rssEventProducer;
     @Autowired
     ProducerTemplate producerTemplate;
-
-    @Value("#{'${rss_collector.urls}'.split(',')}")
-    private List<String> urls;
+    @Autowired
+    RssResourceRepository repository;
     @Value("${rss_collector.collect_old}")
     private boolean collectOld;
 
@@ -44,8 +44,9 @@ public class RssCollector {
     public void collect() {
         LocalDateTime startDate = applicationStart.getDateTime();
 
-        urls.stream()
+        repository.findAll().stream()
                 .peek(url -> log.info("Load rss from {}", url))
+                .map(RssResource::getUrl)
                 .map(rssLoader::load)
                 .flatMap(this::parse)
                 .filter(item -> collectOld || item.getItem().getPubDate().isAfter(startDate))
