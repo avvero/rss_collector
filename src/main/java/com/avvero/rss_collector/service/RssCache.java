@@ -4,6 +4,7 @@ import com.avvero.rss_collector.entity.queue.Event;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -13,10 +14,15 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class RssCache {
 
-    private Map store = new ConcurrentHashMap<>();
+    private Map<String, LocalDateTime> store = new ConcurrentHashMap<>();
 
     public boolean store(Event event) {
-        return store.put(event, BigDecimal.ZERO) == null;
+        LocalDateTime lastPubDateTime = store.get(event.getSourceUrl());
+        if (lastPubDateTime == null || lastPubDateTime.isBefore(event.getItem().getPubDate())) {
+            store.put(event.getSourceUrl(), event.getItem().getPubDate());
+            return true;
+        } else {
+            return false;
+        }
     }
-
 }
